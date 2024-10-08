@@ -99,7 +99,7 @@ h1, h2 {
 
 /* Fond d'écran pour index.html */
 .index-background {
-    background-image: url('image/5.jpg'); /* Remplacez par l'image de fond pour index.html */
+    background-image: url('image/4.jpg'); /* Remplacez par l'image de fond pour index.html */
     background-size: cover; /* Couvre toute la page */
     background-position: center; /* Centre l'image */
     background-repeat: no-repeat; /* Évite de répéter l'image */
