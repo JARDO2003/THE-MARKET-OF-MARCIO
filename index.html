@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue - THE MARKET</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Lien vers le fichier CSS -->
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCL0VrMAt9XNGgX1e0_HIEVC03teeOvqtY",
+            authDomain: "marciojardel-ce0d5.firebaseapp.com",
+            databaseURL: "https://marciojardel-ce0d5-default-rtdb.firebaseio.com",
+            projectId: "marciojardel-ce0d5",
+            storageBucket: "marciojardel-ce0d5.appspot.com",
+            messagingSenderId: "313912737797",
+            appId: "1:313912737797:web:72fee65438c79c86715c6c",
+            measurementId: "G-YN957W0TE0"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const homeArticleList = document.getElementById("home-article-list");
+            const selectedArticlesList = document.getElementById("selected-articles-list");
+            const totalPriceElement = document.getElementById("total-price");
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            loadHomeArticles();
+
+            // Charger les articles depuis Firebase
+            function loadHomeArticles() {
+                homeArticleList.innerHTML = ""; // Vider la liste des articles
+                const articlesRef = database.ref('articles'); // Référence à la base de données
+
+                articlesRef.once('value').then((snapshot) => {
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            const article = childSnapshot.val();
+                            const listItem = document.createElement("li");
+                            listItem.className = "article-item"; // Ajouter une classe pour le style
+                            listItem.innerHTML = `
+                                <img src="${article.image}" alt="${article.name}" class="article-img">
+                                <div class="article-details">
+                                    <strong>${article.name}</strong>
+                                    <p>${article.price} €</p>
+                                    <button class="add-to-cart-btn" data-key="${childSnapshot.key}">Ajouter au panier</button>
+                                </div>`;
+                            homeArticleList.appendChild(listItem);
+
+                            // Fonction pour ajouter un article au panier
+                            listItem.querySelector(".add-to-cart-btn").addEventListener("click", function() {
+                                addToCart(article);
+                            });
+                        });
+                    } else {
+                        console.log("Aucun article trouvé.");
+                    }
+                }).catch((error) => {
+                    console.error("Erreur lors de la lecture des articles : ", error);
+                });
+            }
+
+            // Fonction pour ajouter un article au panier
+            function addToCart(article) {
+                cart.push(article);
+                localStorage.setItem('cart', JSON.stringify(cart)); // Sauvegarder dans localStorage
+                updateSelectedArticles(); // Mettre à jour l'affichage des articles sélectionnés
+                alert(`${article.name} ajouté au panier !`);
+            }
+
+            // Mettre à jour l'affichage des articles sélectionnés
+            function updateSelectedArticles() {
+                selectedArticlesList.innerHTML = ""; // Vider la liste
+                let totalPrice = 0; // Prix total
+
+                cart.forEach((article, index) => {
+                    const listItem = document.createElement("li");
+                    listItem.innerHTML = `
+                        <strong>${article.name}</strong> - ${article.price} €
+                        <button class="remove-btn" data-index="${index}">Retirer</button>`;
+                    selectedArticlesList.appendChild(listItem);
+                    totalPrice += parseFloat(article.price); // Ajouter au prix total
+                });
+
+                totalPriceElement.textContent = `Prix total : ${totalPrice.toFixed(2)} €`;
+
+                // Ajouter les événements de retrait
+                document.querySelectorAll(".remove-btn").forEach(button => {
+                    button.addEventListener("click", function() {
+                        const index = button.getAttribute("data-index");
+                        removeFromCart(index);
+                    });
+                });
+            }
+
+            // Fonction pour retirer un article du panier
+            function removeFromCart(index) {
+                cart.splice(index, 1); // Retirer l'article du panier
+                localStorage.setItem('cart', JSON.stringify(cart)); // Mettre à jour localStorage
+                updateSelectedArticles(); // Mettre à jour l'affichage des articles sélectionnés
+                alert("Article retiré du panier !");
+            }
+
+            // Redirection vers la page du panier
+            document.getElementById("view-cart-btn").addEventListener("click", function() {
+                window.location.href = 'panier.html'; // Redirige vers la page panier
+            });
+
+            // Fonction pour le bouton Marcio
+            document.getElementById("marcio-btn").addEventListener("click", function() {
+                const password = prompt("Veuillez saisir le mot de passe :"); // Demande de mot de passe
+                if (password === "policeDE2003") { // Remplacez 'votre_mot_de_passe' par le mot de passe réel
+                    window.location.href = 'marcio.html'; // Redirige vers la page de gestion des articles
+                } else {
+                    alert("Mot de passe incorrect !"); // Message d'erreur
+                }
+            });
+
+            // Initialiser l'affichage des articles sélectionnés au chargement de la page
+            updateSelectedArticles();
+        });
+    </script>
+</head>
+<body class="index-background"> <!-- Classe de fond d'écran appliquée ici -->
+    <header>
+        <h1>Bienvenue sur THE MARKET</h1>
+        <p>Bienvenue sur notre site ! Nous sommes ravis de vous accueillir et de vous offrir une expérience de shopping unique.</p>
+        <p>Merci d'avoir choisi Marcio, votre assistant de confiance ! Pour toute question, n'hésitez pas à nous contacter à l'adresse : utilisateurmarcio@gmail.com.</p>
+    </header>
+
+    <!-- Section pour afficher les articles publiés -->
+    <section class="articles">
+        <h2>Nos articles</h2>
+        <ul id="home-article-list"></ul> <!-- Liste d'articles -->
+    </section>
+
+    <!-- Section pour le bouton Marcio -->
+    <section class="gestion">
+        <button id="marcio-btn">Marcio - Gestion des articles</button>
+    </section>
+
+    <!-- Section pour afficher le panier -->
+    <section class="panier-preview">
+        <h2>Articles sélectionnés</h2>
+        <ul id="selected-articles-list"></ul> <!-- Liste d'articles sélectionnés -->
+        <p id="total-price">Prix total : 0.00 €</p> <!-- Prix total -->
+        <h2>Votre Panier</h2>
+        <button id="view-cart-btn">Voir mon panier</button>
+    </section>
+</body>
+</html>
